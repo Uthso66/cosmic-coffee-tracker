@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react"; // Move up two folders to 'app', then into 'lib'
+import { useState } from "react";
 import { supabase } from "../lib/supabase";
+import { useRouter } from "next/navigation";
 
 export default function CoffeeLogger() {
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const logCoffee = async (type: string, mood: string) => {
     setLoading(true);
@@ -15,7 +17,7 @@ export default function CoffeeLogger() {
     if (error) {
       alert("Error logging coffee: " + error.message);
     } else {
-      window.location.reload(); // Refresh to see new coffee
+      router.refresh();
     }
     setLoading(false);
   };
