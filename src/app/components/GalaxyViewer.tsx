@@ -7,7 +7,6 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import * as THREE from "three";
 
-// 1. Create a Sub-component for individual stars
 function CoffeeStar({
   position,
   color,
@@ -18,12 +17,12 @@ function CoffeeStar({
   const meshRef = useRef<THREE.Mesh>(null!);
 
   useGSAP(() => {
-    // Target the scale property of the 3D mesh object
     gsap.from(meshRef.current.scale, {
       x: 0,
       y: 0,
       z: 0,
       duration: 1.5,
+      delay: Math.random() * 0.5,
       ease: "back.out(1.7)",
     });
   }, []);
