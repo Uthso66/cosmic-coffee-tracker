@@ -1,43 +1,72 @@
+// page.tsx
+"use client";
+
+import { useState, useEffect } from "react";
 import { supabase } from "./lib/supabase";
 import CoffeeLogger from "./components/CoffeeLogger";
 import GalaxyViewer from "./components/GalaxyViewer";
 
-export default async function Home() {
-  const { data: coffees } = await supabase
-    .from("coffees")
-    .select("*")
-    .order("logged_at", { ascending: false });
+interface Coffee {
+  id: string;
+  type: string;
+  mood: string;
+  logged_at: string;
+}
+
+export default function Home() {
+  const [coffees, setCoffees] = useState<Coffee[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchCoffees() {
+      const { data, error } = await supabase
+        .from("coffees")
+        .select("*")
+        .order("logged_at", { ascending: false });
+
+      if (!error && data && isMounted) {
+        setCoffees(data);
+      }
+      if (isMounted) {
+        setLoading(false);
+      }
+    }
+
+    fetchCoffees();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    setCoffees((prev) => prev.filter((coffee) => coffee.id !== id));
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-linear-to-b from-gray-900 to-black text-white p-8 flex items-center justify-center">
+        <div className="text-2xl">Loading your coffee galaxy... ☕</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-linear-to-b from-gray-900 to-black text-white p-8">
-      <h1 className="text-4xl font-bold mb-8">Cosmic Coffee Tracker ☕🌌</h1>
+      <h1 className="text-4xl font-bold mb-2">Cosmic Coffee Tracker ☕🌌</h1>
+      <p className="text-gray-400 mb-8">
+        Click stars in the galaxy to delete them with an explosion!
+      </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <h2 className="text-2xl font-bold mb-4">Log a Coffee</h2>
-          <CoffeeLogger />
-
-          <h2 className="text-2xl font-bold mb-4 mt-8">Recent Coffees</h2>
-          <div className="space-y-4">
-            {coffees?.map((coffee) => (
-              <div key={coffee.id} className="bg-gray-800 p-4 rounded">
-                <p>
-                  <strong>Type:</strong> {coffee.type}
-                </p>
-                <p>
-                  <strong>Mood:</strong> {coffee.mood}
-                </p>
-                <p>
-                  <strong>Time:</strong>{" "}
-                  {new Date(coffee.logged_at).toLocaleString()}
-                </p>
-              </div>
-            ))}
-          </div>
+          <CoffeeLogger coffees={coffees} onDelete={handleDelete} />
         </div>
 
         <div className="h-125 border border-gray-700 rounded">
-          <GalaxyViewer coffees={coffees || []} />
+          <GalaxyViewer coffees={coffees} onStarDelete={handleDelete} />
         </div>
       </div>
     </div>
